@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "dsb-12-github"
+version = "1.0.0"
+id = "artifacts/dsb-12-github"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19523
+
+[services.development]
+run = "pnpm --filter @workspace/dsb-12-github run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/dsb-12-github", "run", "build" ]
+publicDir = "artifacts/dsb-12-github/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19523"
+BASE_PATH = "/"

@@ -3,20 +3,26 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: DSB-12 Python Developer Frameworks Hub API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: frameworks
+    description: Python developer frameworks
+  - name: templates
+    description: Project templates
+  - name: stats
+    description: Platform statistics
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +30,249 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /frameworks:
+    get:
+      operationId: listFrameworks
+      tags: [frameworks]
+      summary: List all Python frameworks
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of frameworks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Framework"
+    post:
+      operationId: createFramework
+      tags: [frameworks]
+      summary: Add a new framework
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFrameworkBody"
+      responses:
+        "201":
+          description: Framework created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Framework"
+
+  /frameworks/{id}:
+    get:
+      operationId: getFramework
+      tags: [frameworks]
+      summary: Get a framework by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Framework details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Framework"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      operationId: updateFramework
+      tags: [frameworks]
+      summary: Update a framework
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFrameworkBody"
+      responses:
+        "200":
+          description: Framework updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Framework"
+    delete:
+      operationId: deleteFramework
+      tags: [frameworks]
+      summary: Delete a framework
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /frameworks/{id}/star:
+    post:
+      operationId: starFramework
+      tags: [frameworks]
+      summary: Star (upvote) a framework
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Updated framework
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Framework"
+
+  /templates:
+    get:
+      operationId: listTemplates
+      tags: [templates]
+      summary: List all project templates
+      parameters:
+        - name: frameworkId
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of templates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Template"
+    post:
+      operationId: createTemplate
+      tags: [templates]
+      summary: Create a new project template
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTemplateBody"
+      responses:
+        "201":
+          description: Template created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Template"
+
+  /templates/{id}:
+    get:
+      operationId: getTemplate
+      tags: [templates]
+      summary: Get a template by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Template details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Template"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteTemplate
+      tags: [templates]
+      summary: Delete a template
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /stats/summary:
+    get:
+      operationId: getStatsSummary
+      tags: [stats]
+      summary: Get platform summary stats
+      responses:
+        "200":
+          description: Summary statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatsSummary"
+
+  /stats/categories:
+    get:
+      operationId: getStatsByCategory
+      tags: [stats]
+      summary: Framework count by category
+      responses:
+        "200":
+          description: Category breakdown
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CategoryStat"
+
+  /stats/trending:
+    get:
+      operationId: getTrendingFrameworks
+      tags: [stats]
+      summary: Get top trending (most starred) frameworks
+      responses:
+        "200":
+          description: Trending frameworks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Framework"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +283,180 @@ components:
       required:
         - status
 
+    Framework:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        githubUrl:
+          type: string
+        pypiUrl:
+          type: string
+        officialUrl:
+          type: string
+        stars:
+          type: integer
+        weeklyDownloads:
+          type: integer
+        version:
+          type: string
+        license:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - name
+        - description
+        - category
+        - stars
+        - weeklyDownloads
+        - version
+        - license
+        - tags
+        - createdAt
+        - updatedAt
+
+    CreateFrameworkBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        githubUrl:
+          type: string
+        pypiUrl:
+          type: string
+        officialUrl:
+          type: string
+        version:
+          type: string
+        license:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+      required:
+        - name
+        - description
+        - category
+        - version
+        - license
+        - tags
+
+    Template:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        frameworkId:
+          type: integer
+        frameworkName:
+          type: string
+        repoUrl:
+          type: string
+        language:
+          type: string
+        difficulty:
+          type: string
+        useCount:
+          type: integer
+        createdAt:
+          type: string
+      required:
+        - id
+        - name
+        - description
+        - frameworkId
+        - frameworkName
+        - language
+        - difficulty
+        - useCount
+        - createdAt
+
+    CreateTemplateBody:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        frameworkId:
+          type: integer
+        repoUrl:
+          type: string
+        language:
+          type: string
+        difficulty:
+          type: string
+      required:
+        - name
+        - description
+        - frameworkId
+        - language
+        - difficulty
+
+    StatsSummary:
+      type: object
+      properties:
+        totalFrameworks:
+          type: integer
+        totalTemplates:
+          type: integer
+        totalStars:
+          type: integer
+        totalCategories:
+          type: integer
+        mostPopularCategory:
+          type: string
+      required:
+        - totalFrameworks
+        - totalTemplates
+        - totalStars
+        - totalCategories
+        - mostPopularCategory
+
+    CategoryStat:
+      type: object
+      properties:
+        category:
+          type: string
+        count:
+          type: integer
+        totalStars:
+          type: integer
+      required:
+        - category
+        - count
+        - totalStars
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+      required:
+        - error
+        - message
